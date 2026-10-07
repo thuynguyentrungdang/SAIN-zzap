@@ -704,10 +704,13 @@ public class GrenadeReactionClass : BotSubClass<BotGrenadeManager>, IBotClass
             && (Bot.Position - dangerPoint).sqrMagnitude > BLAST_OVERRIDE_DISTANCE * BLAST_OVERRIDE_DISTANCE
         )
         {
+            // zzap: blend toward the perceived (last-known) enemy position, not their live one - the goal
+            // enemy also isn't necessarily the grenade's actual thrower.
             Enemy goalEnemy = Bot.GoalEnemy;
-            if (goalEnemy != null)
+            Vector3? goalEnemyLastKnown = goalEnemy?.LastKnownPosition;
+            if (goalEnemyLastKnown != null)
             {
-                Vector3 toEnemy = goalEnemy.EnemyPosition - Bot.Position;
+                Vector3 toEnemy = goalEnemyLastKnown.Value - Bot.Position;
                 toEnemy.y = 0f;
                 if (toEnemy.sqrMagnitude > 0.01f)
                 {
