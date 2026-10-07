@@ -24,11 +24,6 @@ public class HearingAnalysis(HearingSensor hearingSensor) : BotSubClass<HearingS
             return false;
         }
 
-        if ((sound.Sound.Position - sound.Sound.PlayerComponent.Position).sqrMagnitude > 5f * 5f)
-        {
-            return false;
-        }
-
         float EnvironmentModifier = CalcEnvironmentMod(sound);
         float ConditionModifier = CalcConditionMod(sound.SoundType);
         float OcclusionModifier = CalcOcclusionMod(sound.Enemy, sound.SoundType);
