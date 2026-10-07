@@ -84,24 +84,23 @@ public class GrenadeTrackerClass
             return;
         }
 
-        if (Spotted)
-        {
-            return;
-        }
-
         GrenadeDistance = (Grenade.transform.position - BotOwner.Position).magnitude;
 
         // Something landing at your feet registers whether or not you were looking at it.
         if (GrenadeDistance < NOTICE_WITHOUT_LOOKING_DISTANCE)
         {
             SetSpotted();
+            _lastVisibilityCheckResult = true;
             return;
         }
 
         if (_nextCheckRaycastTime < Time.time)
         {
             _nextCheckRaycastTime = Time.time + 0.05f;
-            if (CheckVisibility())
+            // zzap: keep re-checking even after being spotted once (same throttle, no added cost) so
+            // UpdateGrenadeDanger below has fresh evidence of whether the grenade is still trackable.
+            _lastVisibilityCheckResult = CheckVisibility();
+            if (_lastVisibilityCheckResult)
             {
                 SetSpotted();
             }
@@ -134,10 +133,18 @@ public class GrenadeTrackerClass
         return !Physics.Raycast(lookPoint, grenadeDir.normalized, grenadeDir.magnitude, LayersMaskController.HighPolyWithTerrainMaskAI);
     }
 
+    // zzap: only accept a physics-driven correction while there's current evidence the grenade is still
+    // trackable (point-blank or passed a fresh visibility check) - a hidden/occluded bounce now freezes
+    // the last-known danger point instead of silently tracking live physics the bot has no evidence of.
     public void UpdateGrenadeDanger(Vector3 Danger)
     {
-        DangerPoint = Danger;
+        if (_lastVisibilityCheckResult)
+        {
+            DangerPoint = Danger;
+        }
     }
+
+    private bool _lastVisibilityCheckResult;
 
     private float TimeSpotted { get; set; }
     public float TimeSinceSpotted
