@@ -145,6 +145,7 @@ public class EnemyVisionClass(EnemyData enemyData) : EnemyBase(enemyData, enemyD
             }
 
             TimeLastSeen = currentTime;
+            _lastVisiblePosition = EnemyTransform.Position;
             Enemy.UpdateCurrentEnemyPos(EnemyTransform.Position, currentTime);
         }
 
@@ -152,7 +153,9 @@ public class EnemyVisionClass(EnemyData enemyData) : EnemyBase(enemyData, enemyD
         {
             if (wasVisible)
             {
-                Enemy.UpdateLastSeenPosition(EnemyTransform.Position, currentTime);
+                // zzap: close the observation with the last CONFIRMED visible sample, not a fresh read taken
+                // on the very tick visibility was lost (which can already be past the occluding edge).
+                Enemy.UpdateLastSeenPosition(_lastVisiblePosition, currentTime);
             }
 
             if (Seen && TimeSinceSeen > _lostContactMinSeenTime && _nextReportLostVisualTime < currentTime)
@@ -172,4 +175,5 @@ public class EnemyVisionClass(EnemyData enemyData) : EnemyBase(enemyData, enemyD
 
     public readonly EnemyVisionDistanceClass _visionDistance = new(enemyData);
     private float _nextReportLostVisualTime;
+    private Vector3 _lastVisiblePosition;
 }
