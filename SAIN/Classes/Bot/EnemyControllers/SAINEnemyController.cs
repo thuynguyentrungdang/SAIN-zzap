@@ -397,7 +397,9 @@ public class SAINEnemyController : BotComponentClassBase
             seenEnemies.Sort((x, y) => x.TimeSinceSeen.CompareTo(y.TimeSinceSeen));
             foreach (Enemy seenEnemy in seenEnemies)
             {
-                if (seenEnemy.IsShooter() && (seenEnemy.Status.ShotAtMe || seenEnemy.Status.ShotMe))
+                // zzap: only trust the live hands-state read while actually currently visible - "ever seen"
+                // alone shouldn't let a hidden target's silent weapon swap change selection priority.
+                if (seenEnemy.IsVisible && seenEnemy.IsShooter() && (seenEnemy.Status.ShotAtMe || seenEnemy.Status.ShotMe))
                 {
                     return seenEnemy;
                 }
