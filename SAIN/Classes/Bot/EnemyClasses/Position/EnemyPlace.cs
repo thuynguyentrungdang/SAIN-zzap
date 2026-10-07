@@ -135,7 +135,13 @@ public class EnemyPlace : IDisposable
         EnemyRealPositionWhenUpdated = PlaceData.OwnerEnemy.EnemyPosition;
         _position = position;
         updateDistancesNow(position);
-        SetLastKnownPartPositions(PlaceData.OwnerEnemy);
+        // zzap: body-part geometry only comes from an actual visual observation - a heard/flashlight/injury
+        // place has no perceived pose, so leave BodyPartPositions empty (EnemyHeadAtPosition() already falls
+        // back to a generic Position + 1.5m silhouette).
+        if (PlaceType == EEnemyPlaceType.Vision)
+        {
+            SetLastKnownPartPositions(PlaceData.OwnerEnemy);
+        }
         _timeLastUpdated = Time.time;
     }
 
@@ -168,7 +174,10 @@ public class EnemyPlace : IDisposable
         _timeLastUpdated = Time.time;
         BotPositionWhenUpdated = PlaceData.Owner.Position;
         Visible = PlaceData.OwnerEnemy.InLineOfSight;
-        SetLastKnownPartPositions(PlaceData.OwnerEnemy);
+        if (PlaceType == EEnemyPlaceType.Vision)
+        {
+            SetLastKnownPartPositions(PlaceData.OwnerEnemy);
+        }
         HasArrivedPersonal = false;
         HasArrivedSquad = false;
         HasSeenPersonal = false;

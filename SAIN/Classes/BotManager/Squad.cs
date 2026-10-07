@@ -199,7 +199,9 @@ public class Squad
     {
         BotsGroup ??= bot.BotOwner.BotsGroup;
 
-        position.y = enemy.EnemyPosition.y;
+        // zzap: don't overwrite the reported height with the target's live current Y - that silently
+        // disambiguates which floor/elevation the target is on from knowledge the sensory estimate never
+        // actually established. Keep whatever height the estimate itself carries.
 
         //AISoundType baseSoundType = soundType.Convert();
         //PlaceForCheckType checkType = isDanger ? PlaceForCheckType.danger : PlaceForCheckType.simple;
