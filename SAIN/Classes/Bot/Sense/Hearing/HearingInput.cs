@@ -377,7 +377,9 @@ public class HearingInput(HearingSensor hearingSensor) : BotSubClass<HearingSens
         Vector3 random = UnityEngine.Random.onUnitSphere;
         random.y = 0;
         random = random.normalized * dispersion;
-        Vector3 estimatedPos = enemy.EnemyPosition + random;
+        // zzap: localize at the actual impact point, not the shooter's live position - a nearby impact tells
+        // you where the ROUND landed, not precisely where a distant/hidden shooter currently is.
+        Vector3 estimatedPos = bullet.CurrentPosition + random;
 
         SAINHearingReport report = new()
         {
