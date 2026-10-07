@@ -132,14 +132,17 @@ public class SquadDecisionClass : BotBase
                 {
                     return true;
                 }
-                ETagStatus enemyHealth = enemy.EnemyPlayer.HealthStatus;
-                if (enemyHealth == ETagStatus.Dying || enemyHealth == ETagStatus.BadlyInjured)
+                if (enemy.IsVisible)
                 {
-                    return true;
-                }
-                else if (enemy.EnemyPlayer.IsInPronePose)
-                {
-                    return true;
+                    ETagStatus enemyHealth = enemy.EnemyPlayer.HealthStatus;
+                    if (enemyHealth == ETagStatus.Dying || enemyHealth == ETagStatus.BadlyInjured)
+                    {
+                        return true;
+                    }
+                    else if (enemy.EnemyPlayer.IsInPronePose)
+                    {
+                        return true;
+                    }
                 }
             }
         }
