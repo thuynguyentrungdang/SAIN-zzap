@@ -55,7 +55,9 @@ public class SquadDecisionClass : BotBase
         }
         if (myEnemy != null)
         {
-            if (myEnemy.IsVisible || myEnemy.TimeSinceSeen < SquadDecision_MyEnemySeenRecentTime)
+            // zzap: TimeSinceSeen is -1 when never seen - without the Seen check, that reads as "just seen"
+            // and blocks group-search/help/suppress for an enemy known only through hearing/squad reports.
+            if (myEnemy.IsVisible || (myEnemy.Seen && myEnemy.TimeSinceSeen < SquadDecision_MyEnemySeenRecentTime))
             {
                 return false;
             }

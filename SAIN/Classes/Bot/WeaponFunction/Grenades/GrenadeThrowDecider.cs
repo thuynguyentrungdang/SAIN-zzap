@@ -365,7 +365,9 @@ public class GrenadeThrowDecider : BotSubClass<BotGrenadeManager>, IBotDecisionC
                 reason = "enemyVisible";
                 return false;
             }
-            if (enemy.TimeSinceSeen < _timeSinceSeenBeforeThrow)
+            // zzap: TimeSinceSeen is -1 when never seen - without the Seen check, that reads as "just seen"
+            // and blocks direct-contact throwing at a purely heard/never-seen enemy.
+            if (enemy.Seen && enemy.TimeSinceSeen < _timeSinceSeenBeforeThrow)
             {
                 reason = "enemySeenRecent";
                 return false;
