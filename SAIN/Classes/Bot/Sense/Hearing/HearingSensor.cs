@@ -49,7 +49,7 @@ public class HearingSensor : BotComponentClassBase
         base.Dispose();
     }
 
-    public void ReactToBulletFlyBy(AISoundData sound, float FlyByDistance)
+    public void ReactToBulletFlyBy(AISoundData sound, float FlyByDistance, string shotCaliber = null)
     {
         bool underFire = FlyByDistance <= SAINPlugin.LoadedPreset.GlobalSettings.Mind.MaxUnderFireDistance;
         if (HearingInput.IsIgnoringSounds(underFire))
@@ -58,7 +58,7 @@ public class HearingSensor : BotComponentClassBase
         }
 
         Vector3 EstimatedPosition = HearingDispersion.CalcRandomizedPosition(sound, 1f);
-        ReactToBulletFlyBy(sound, FlyByDistance, EstimatedPosition, underFire);
+        ReactToBulletFlyBy(sound, FlyByDistance, EstimatedPosition, underFire, shotCaliber);
         OnEnemySoundHeard?.Invoke(sound, sound.Enemy);
     }
 
@@ -149,7 +149,7 @@ public class HearingSensor : BotComponentClassBase
         }
     }
 
-    private void ReactToBulletFlyBy(AISoundData sound, float ProjectionPointDistance, Vector3 EstimatedPosition, bool UnderFire)
+    private void ReactToBulletFlyBy(AISoundData sound, float ProjectionPointDistance, Vector3 EstimatedPosition, bool UnderFire, string shotCaliber)
     {
         Enemy enemy = sound.Enemy;
         if (UnderFire)
@@ -158,7 +158,10 @@ public class HearingSensor : BotComponentClassBase
             Bot.Memory.SetUnderFire(enemy, EstimatedPosition);
             enemy.SetEnemyAsSniper(enemy.RealDistance > Bot.Info.PersonalitySettings.General.ENEMYSNIPER_DISTANCE);
         }
-        Bot.Suppression.CheckAddSuppression(enemy, ProjectionPointDistance);
+        // zzap: prefer the shot-time caliber (the round that actually caused this flyby) over re-deriving
+        // suppression strength from the shooter's current equipped weapon, which can differ by now.
+        float suppressionAmount = SAIN.SAINComponent.Classes.WeaponFunction.SAINBotSuppressClass.GetSuppressionAmountForCaliber(shotCaliber);
+        Bot.Suppression.CheckAddSuppression(enemy, ProjectionPointDistance, suppressionAmount);
         enemy.Status.RegisterEnemyFlyBy();
         Bot.Squad.SquadInfo?.AddPointToSearch(enemy, EstimatedPosition, sound, Bot);
     }

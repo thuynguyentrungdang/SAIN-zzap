@@ -54,7 +54,10 @@ public class HearingInput(HearingSensor hearingSensor) : BotSubClass<HearingSens
             Vector3 BulletPosition = Bullet.CurrentPosition;
             Vector3 MyHeadPosition = Bot.Transform.HeadData.HeadPosition;
             float Dist = (BulletPosition - MyHeadPosition).magnitude;
-            BaseClass.ReactToBulletFlyBy(Sound, Dist);
+            // zzap: Shot.Weapon is the weapon that actually fired this shot, frozen at shot creation -
+            // distinct from the shooter's current equipped weapon, which can have changed by now.
+            string shotCaliber = (Bullet.Weapon as EFT.InventoryLogic.Weapon)?.AmmoCaliber;
+            BaseClass.ReactToBulletFlyBy(Sound, Dist, shotCaliber);
         }
     }
 

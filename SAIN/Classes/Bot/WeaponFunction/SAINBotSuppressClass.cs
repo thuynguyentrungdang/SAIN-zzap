@@ -462,6 +462,20 @@ public class SAINBotSuppressClass : BotComponentClassBase
             .Round100();
     }
 
+    /// <summary>
+    /// zzap: shot-time caliber lookup (e.g. from Shot.Weapon, frozen at the moment that round was fired),
+    /// for callers that have it - avoids re-deriving suppression strength from the shooter's current
+    /// equipped weapon, which can have changed since the shot that's actually causing this reaction.
+    /// </summary>
+    public static float GetSuppressionAmountForCaliber(string caliber)
+    {
+        if (!string.IsNullOrEmpty(caliber) && GlobalSettingsClass.Instance.Mind.SUPP_AMOUNTS.TryGetValue(caliber, out float result))
+        {
+            return result;
+        }
+        return -1f;
+    }
+
     private float getSuppNum(Enemy enemy)
     {
         const float defaultNum = 2f;
