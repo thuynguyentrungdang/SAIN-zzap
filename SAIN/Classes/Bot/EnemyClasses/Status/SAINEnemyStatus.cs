@@ -91,38 +91,40 @@ public class SAINEnemyStatus(EnemyData enemyData) : EnemyBase(enemyData, enemyDa
 
     public void SetVulnerableAction(EEnemyAction action)
     {
-        if (action != VulnerableAction)
+        // zzap: repeated evidence of the SAME action must still refresh its expiry - only gating this on
+        // "action changed" meant a second identical sound (e.g. healing heard twice) never extended the
+        // estimate, so fresh evidence could expire on the original schedule.
+        bool changed = action != VulnerableAction;
+        VulnerableAction = action;
+        if (changed && action == EEnemyAction.None)
         {
-            VulnerableAction = action;
-            switch (action)
-            {
-                case EEnemyAction.None:
-                    ResetActions();
-                    break;
+            ResetActions();
+            return;
+        }
+        switch (action)
+        {
+            case EEnemyAction.Reloading:
+                EnemyIsReloading = true;
+                break;
 
-                case EEnemyAction.Reloading:
-                    EnemyIsReloading = true;
-                    break;
+            case EEnemyAction.HasGrenade:
+                EnemyHasGrenadeOut = true;
+                break;
 
-                case EEnemyAction.HasGrenade:
-                    EnemyHasGrenadeOut = true;
-                    break;
+            case EEnemyAction.Healing:
+                EnemyIsHealing = true;
+                break;
 
-                case EEnemyAction.Healing:
-                    EnemyIsHealing = true;
-                    break;
+            case EEnemyAction.Looting:
+                EnemyIsLooting = true;
+                break;
 
-                case EEnemyAction.Looting:
-                    EnemyIsLooting = true;
-                    break;
+            case EEnemyAction.UsingSurgery:
+                EnemyUsingSurgery = true;
+                break;
 
-                case EEnemyAction.UsingSurgery:
-                    EnemyUsingSurgery = true;
-                    break;
-
-                default:
-                    break;
-            }
+            default:
+                break;
         }
     }
 
