@@ -223,7 +223,11 @@ internal class SearchAction(BotOwner bot) : BotAction(bot, "Search"), IBotAction
         if (_sprintTimer < Time.time && chance > 0)
         {
             float myPower = Bot.Info.Profile.PowerLevel;
-            if (_searchTarget?.EnemyPlayer != null && _searchTarget.EnemyPlayer.AIData.PowerOfEquipment < myPower * 0.5f)
+            if (
+                _searchTarget?.EnemyPlayer != null
+                && _searchTarget.Seen
+                && _searchTarget.EnemyPlayer.AIData.PowerOfEquipment < myPower * 0.5f
+            )
             {
                 chance = 100f;
             }

@@ -185,7 +185,9 @@ public class SearchDecider : BotSubClass<SearchClass>
 
         float myPower = Bot.Info.Profile.PowerLevel;
 
-        if (enemy.EnemyPlayer.AIData.PowerOfEquipment < myPower * 0.5f)
+        // zzap: only trust authoritative equipment strength for a target actually seen - unknown gear
+        // should not imply weakness for a purely heard/never-seen enemy.
+        if (enemy.Seen && enemy.EnemyPlayer.AIData.PowerOfEquipment < myPower * 0.5f)
         {
             reason = EWantToSearchReason.NewSearch_PowerLevel;
             return true;
@@ -292,7 +294,7 @@ public class SearchDecider : BotSubClass<SearchClass>
         }
 
         float myPower = Bot.Info.Profile.PowerLevel;
-        if (enemy.EnemyPlayer.AIData.PowerOfEquipment < myPower * 0.5f)
+        if (enemy.Seen && enemy.EnemyPlayer.AIData.PowerOfEquipment < myPower * 0.5f)
         {
             reason = EWantToSearchReason.ContinueSearch_PowerLevel;
             return true;
