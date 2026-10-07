@@ -54,7 +54,9 @@ public class HearingDispersion(HearingSensor hearingSensor) : BotSubClass<Hearin
         HearingSettings hearingSettings = GlobalSettingsClass.Instance.Hearing;
         finalDispersion = Mathf.Clamp(finalDispersion, 0f, hearingSettings.HEAR_DISPERSION_MAX_DISPERSION);
         //Vector3 randomBox = getRandomizedDirection(finalDispersion, 1f, 0.1f, 1f);
-        if (GetRandomReachablePointAroundPlayer(Sound.HeardPlayerComponent, finalDispersion, 0f, out Vector3 result, 4f, 20))
+        // zzap: sample around the sound's frozen emission position, not the source's live transform - a
+        // delayed report should not sharpen/shift toward where the target has moved to since making the sound.
+        if (GetRandomReachablePointAroundPlayer(Sound.Position, finalDispersion, 0f, out Vector3 result, 4f, 20))
         {
 #if DEBUG
             if (Sound.HeardPlayer.IsYourPlayer)
@@ -81,14 +83,15 @@ public class HearingDispersion(HearingSensor hearingSensor) : BotSubClass<Hearin
 
 #if DEBUG
         Logger.LogWarning(
-            $"[{Bot.name}] Failed to find reachable point from perception event for Enemy: [{Sound.Enemy.Player.name}]! had to use enemy's real location as fallback!"
+            $"[{Bot.name}] Failed to find reachable point from perception event for Enemy: [{Sound.Enemy.Player.name}]! had to use the sound's emission position as fallback!"
         );
 #endif
-        return Sound.Enemy.EnemyPosition;
+        // zzap: fall back to the acoustic event's own position, not the target's live truth.
+        return Sound.Position;
     }
 
     public bool GetRandomReachablePointAroundPlayer(
-        PlayerComponent playerComp,
+        Vector3 origin,
         float radius,
         float height,
         out Vector3 result,
@@ -96,8 +99,6 @@ public class HearingDispersion(HearingSensor hearingSensor) : BotSubClass<Hearin
         int maxTries = 10
     )
     {
-        PlayerNavData navData = playerComp.Transform.NavData;
-        Vector3 origin = navData.Status == EPlayerNavMeshDistance.OffNavMesh ? playerComp.Position : playerComp.Transform.NavData.Position;
         for (int i = 0; i < maxTries; i++)
         {
             Vector3 randomDir = new(Random.Range(-radius, radius), Random.Range(-height, height), Random.Range(-radius, radius));
