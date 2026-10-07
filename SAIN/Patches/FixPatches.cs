@@ -98,7 +98,9 @@ internal class RunToEnemyUpdatePatch : ModulePatch
                     }
                     else
                     {
-                        bot.Mover.RunToPoint(goalEnemy.CurrPosition, true, -1, ESprintUrgency.High, true);
+                        // zzap: pursue the perceived (last-known) position, not the live hidden target -
+                        // losing LOS mid-charge shouldn't let the bot keep following them through cover.
+                        bot.Mover.RunToPoint(enemy.LastKnownPosition ?? goalEnemy.CurrPosition, true, -1, ESprintUrgency.High, true);
                     }
                 }
             }
@@ -115,7 +117,7 @@ internal class RunToEnemyUpdatePatch : ModulePatch
                 }
                 else
                 {
-                    bot.Mover.RunToPoint(goalEnemy.CurrPosition, true, -1, ESprintUrgency.High, true);
+                    bot.Mover.RunToPoint(enemy.LastKnownPosition ?? goalEnemy.CurrPosition, true, -1, ESprintUrgency.High, true);
                 }
             }
             return false;
