@@ -85,8 +85,11 @@ public class BotFlashedClass : BotComponentClassBase
             return;
         }
 
+        // zzap: use the perceived (last-known) position, not the live target - a flash event must not query
+        // a hidden enemy's current truth to "improve" the bot's memory of them.
         Enemy enemy = Bot.GoalEnemy;
-        LastSeenEnemyPoint = enemy != null ? enemy.EnemyPosition + (Vector3.up * REMEMBERED_HEIGHT) : null;
+        Vector3? lastKnown = enemy?.LastKnownPosition;
+        LastSeenEnemyPoint = lastKnown != null ? lastKnown.Value + (Vector3.up * REMEMBERED_HEIGHT) : null;
 
         BotOwner.BotsGroup.AddPointToSearch(position, SEARCH_POINT_RANGE, BotOwner);
 
