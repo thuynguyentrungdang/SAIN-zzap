@@ -31,9 +31,12 @@ public readonly struct SoundEvent(
     public readonly bool IsAI = InPlayerComponent.IsAI;
     public readonly int EnvironmentId = InPlayerComponent.Player.AIData.EnvironmentId;
 
+    // zzap: a sound was already legitimately emitted - the source dying/deactivating before a listener gets
+    // to react to it must not retroactively invalidate that emission. Only the component itself being gone
+    // (destroyed) makes the event truly unprocessable.
     public readonly bool IsValid()
     {
-        return PlayerComponent != null && PlayerComponent.IsActive;
+        return PlayerComponent != null;
     }
 
     public readonly Player GetPlayer()
