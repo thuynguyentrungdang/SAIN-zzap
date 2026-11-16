@@ -85,7 +85,7 @@ public class EnemyVisionClass(EnemyData enemyData) : EnemyBase(enemyData, enemyD
     public void TickEnemy(float currentTime)
     {
         Angles.CalcAngles(Enemy, currentTime);
-        EnemyParts.Update(currentTime);
+        EnemyParts.Update(currentTime, Enemy.LoSSuccessWindow);
         Enemy.Events.OnEnemyLineOfSightChanged.CheckToggle(InLineOfSight, currentTime);
         UpdateVisibleState(currentTime);
     }

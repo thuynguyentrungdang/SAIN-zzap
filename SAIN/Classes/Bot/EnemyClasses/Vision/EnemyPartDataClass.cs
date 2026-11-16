@@ -44,13 +44,12 @@ public class EnemyPartDataClass
         }
     }
 
-    public void Update(float currentTime)
+    public void Update(float currentTime, float successPeriod)
     {
-        const float SUCCESS_PERIOD = 0.25f;
         float lineOfSightSuccessTime = _raycastResults[(int)ERaycastCheck.LineofSight].TimeLastSuccess;
-        LineOfSight = currentTime - lineOfSightSuccessTime <= SUCCESS_PERIOD;
+        LineOfSight = currentTime - lineOfSightSuccessTime <= successPeriod;
         float shootSuccessTime = _raycastResults[(int)ERaycastCheck.Shoot].TimeLastSuccess;
-        CanShoot = currentTime - shootSuccessTime <= SUCCESS_PERIOD;
+        CanShoot = currentTime - shootSuccessTime <= successPeriod;
         if (!LineOfSight)
         {
             CanBeSeen = false;
@@ -58,7 +57,7 @@ public class EnemyPartDataClass
             return;
         }
         float visionSuccessTime = _raycastResults[(int)ERaycastCheck.Vision].TimeLastSuccess;
-        CanBeSeen = currentTime - visionSuccessTime <= SUCCESS_PERIOD;
+        CanBeSeen = currentTime - visionSuccessTime <= successPeriod;
         if (!CanBeSeen)
         {
             TimeSeen = -1f;

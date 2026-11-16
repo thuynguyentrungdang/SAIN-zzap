@@ -26,7 +26,10 @@ public class Enemy : BotBase, ISPlayer
                 deltaTime = 0f;
                 return false;
             }
-            deltaTime = currentTime - _nextCheckLookTime;
+            // Elapsed time since the previous look check (vanilla semantics). Previously this was
+            // currentTime - _nextCheckLookTime = lateness only, which under-fed visibility gain and spiked on first/stale checks.
+            deltaTime = VisionTiming.LookDeltaTime(currentTime, _lastLookTime);
+            _lastLookTime = currentTime;
             _nextCheckLookTime = currentTime + LookUpdateInterval();
             return true;
         }
@@ -43,13 +46,26 @@ public class Enemy : BotBase, ISPlayer
                 return false;
             }
 
-            _nextCheckLoSTime = currentTime + LookUpdateInterval();
+            float baseInterval = BaseLookInterval();
+            LoSSuccessWindow = VisionTiming.SuccessWindow(baseInterval);
+            _nextCheckLoSTime = currentTime + baseInterval * UnityEngine.Random.Range(0.75f, VisionTiming.MaxIntervalJitter);
             return true;
         }
         return false;
     }
 
+    /// <summary>
+    /// How long a raycast success from the vision job stays valid. Scales with this enemy's check cadence
+    /// so slow-cadence enemies (far AI, inactive) don't flicker out of line of sight between samples.
+    /// </summary>
+    public float LoSSuccessWindow { get; private set; } = VisionTiming.MinSuccessWindow;
+
     private float LookUpdateInterval()
+    {
+        return BaseLookInterval() * UnityEngine.Random.Range(0.75f, VisionTiming.MaxIntervalJitter);
+    }
+
+    private float BaseLookInterval()
     {
         float interval;
         if (!Bot.BotActive || !IsEnemyActive(this))
@@ -76,9 +92,10 @@ public class Enemy : BotBase, ISPlayer
         {
             interval = IsAI ? 1f / 12f : 1f / 16f;
         }
-        return interval * UnityEngine.Random.Range(0.75f, 1.25f);
+        return interval;
     }
 
+    private float _lastLookTime = -1f;
     private float _nextCheckLookTime = 0f;
     private float _nextCheckLoSTime = 0f;
 

@@ -126,6 +126,8 @@ partial class Program
             Check(string.Join("|", QuickSettings.ReferenceOrder.Select(n => QuickSettings.ReferenceLabel(n, true))) == "쉬움|보통|zzap (어려움)|저장된 값", "reference order");
         });
         SelectionSlotTests();
+        VisionTimingTests();
+        DazzleMathTests();
         Console.WriteLine($"regression: {passed} passed, {failed} failed"); return failed == 0 ? 0 : 1;
     }
 }

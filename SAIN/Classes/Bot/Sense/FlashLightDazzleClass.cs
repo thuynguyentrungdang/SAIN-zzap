@@ -127,22 +127,9 @@ public class FlashLightDazzleClass : BotBase
 
     private float GetDazzleModifier(Enemy enemy)
     {
-        float max = MaxDazzleRange;
-        float min = max / 2f;
-
-        float num = max - min;
-        float num2 = enemy.RealDistance - num;
-        float ratio = (num2 / num);
-        float result = Mathf.InverseLerp(1f, 2f, ratio);
-
-        if (
+        bool nvgsAndVisibleBeam =
             BotOwner.NightVision.UsingNow
-            && (enemy.EnemyPlayerComponent.Flashlight.WhiteLight || enemy.EnemyPlayerComponent.Flashlight.Laser)
-        )
-        {
-            result *= 1.5f;
-        }
-
-        return result;
+            && (enemy.EnemyPlayerComponent.Flashlight.WhiteLight || enemy.EnemyPlayerComponent.Flashlight.Laser);
+        return DazzleMath.Modifier(enemy.RealDistance, MaxDazzleRange, nvgsAndVisibleBeam);
     }
 }

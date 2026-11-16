@@ -7,6 +7,8 @@
     <Compile Include="../../SAIN/Plugin/SAINEnableClass.cs" Link="Real/SAINEnableClass.cs" />
     <Compile Include="../../SAIN/Plugin/BigBrainHandler.cs" Link="Real/BigBrainHandler.cs" />
     <Compile Include="../../SAIN/Helpers/EnumValues.cs" Link="Real/EnumValues.cs" />
+    <Compile Include="../../SAIN/Classes/Bot/EnemyClasses/Vision/VisionTiming.cs" Link="Real/VisionTiming.cs" />
+    <Compile Include="../../SAIN/Classes/Bot/Sense/DazzleMath.cs" Link="Real/DazzleMath.cs" />
     <Compile Include="../../SAIN/Preset/GlobalSettings/Categories/BigBrain/EBrain.cs" Link="Real/AIBrains.cs" />
   </ItemGroup>
 </Project>

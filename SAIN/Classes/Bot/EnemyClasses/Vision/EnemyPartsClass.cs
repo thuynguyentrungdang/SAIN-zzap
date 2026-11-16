@@ -21,14 +21,14 @@ public class EnemyPartsClass
 
     public EnemyPartDataClass[] PartsArray { get; private set; }
 
-    public void Update(float currentTime)
+    public void Update(float currentTime, float successPeriod)
     {
         CanBeSeen = false;
         LineOfSight = false;
         CanShoot = false;
         foreach (var part in PartsArray)
         {
-            part.Update(currentTime);
+            part.Update(currentTime, successPeriod);
             if (!CanShoot && part.CanShoot)
             {
                 CanShoot = true;
