@@ -157,6 +157,47 @@ public class SafeCullingOnDeadPatch : ModulePatch
 }
 
 /// <summary>
+/// zzap fork: is this player in Project Fika's downed (revivable) state? Fika sets HealthController.IsAlive=false for it, which
+/// looks like an unprocessed death. The flag is a "Downed" bool: on ObservedPlayer for other players, on ClientHealthController
+/// for the local one. Read by reflection (SAIN doesn't reference Fika), PropertyInfo cached per type; false without Fika.
+/// </summary>
+internal static class FikaDownedState
+{
+    private static readonly Dictionary<Type, PropertyInfo> _props = new();
+
+    internal static bool IsDowned(Player player)
+    {
+        return player != null && (Read(player) || Read(player.HealthController));
+    }
+
+    private static bool Read(object target)
+    {
+        if (target == null)
+        {
+            return false;
+        }
+        Type type = target.GetType();
+        if (!_props.TryGetValue(type, out PropertyInfo prop))
+        {
+            prop = type.GetProperty("Downed", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (prop != null && prop.PropertyType != typeof(bool))
+            {
+                prop = null;
+            }
+            _props[type] = prop;
+        }
+        try
+        {
+            return prop != null && (bool)prop.GetValue(target);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
+/// <summary>
 /// zzap fork: last line for a death EFT never processed (whatever the reason): a player whose health says dead but who has
 /// no corpse after 1.5s gets Player.OnDead (ragdoll, controller off) and, for a bot, BotOwner.OnDied (brain off, bot
 /// removed from its zone/group) run here. Checked every second over the alive-players list (an unprocessed death stays
@@ -213,6 +254,14 @@ internal static class UnprocessedDeathRescue
         int id = player.GetInstanceID();
         if (_rescued.Contains(id) || DeathRescuePatch.CorpseRef(player) != null)
         {
+            return;
+        }
+        // Fika's downed (revivable) state sets IsAlive=false on purpose and never calls OnDead. Forcing OnDead here built a
+        // corpse and removed the observed copy from Fika's ObservedPlayers (the list that moves it), so after the revive the
+        // headless copy stayed frozen at the downed spot and bots kept shooting it - damage that Fika forwards to the real player.
+        if (FikaDownedState.IsDowned(player))
+        {
+            _deadSince.Remove(id);
             return;
         }
         float time = UnityEngine.Time.time;
@@ -364,7 +413,7 @@ internal static class DeadInputGuard
 
     internal static bool IsDead(Player player)
     {
-        return player != null && player.HealthController != null && !player.HealthController.IsAlive;
+        return player != null && player.HealthController != null && !player.HealthController.IsAlive && !FikaDownedState.IsDowned(player);
     }
 
     internal static void Blocked(Player player, string what)
