@@ -2829,7 +2829,7 @@ public partial class DoorTacticClass : BotComponentClassBase
             foreach (float lateral in laterals)
             {
                 Vector3 raw = geo.Center + geo.BotSide * depth + geo.Axis * side * lateral;
-                if (SampleOnBotSide(raw, geo, out Vector3 point) && Bot.Mover.CanGoToPoint(point, out _, true))
+                if (SampleOnBotSide(raw, geo, out Vector3 point) && Bot.Mover.CanReachPoint(point, true))
                 {
                     result = point;
                     return true;

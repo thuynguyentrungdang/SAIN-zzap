@@ -111,7 +111,7 @@ public class FiringPositionFinder(BotComponent bot) : BotBase(bot)
                     continue;
                 }
 
-                if (!Bot.Mover.CanGoToPoint(navHit.position, out _, true))
+                if (!Bot.Mover.CanReachPoint(navHit.position, true))
                 {
                     continue;
                 }

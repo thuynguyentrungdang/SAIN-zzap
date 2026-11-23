@@ -435,6 +435,29 @@ public class SAINMoverClass : BotComponentClassBase, IBotPathFinder
         throw new NotImplementedException();
     }
 
+    // perf: shared scratch path + corner buffer for yes/no reachability checks (main thread only, result never kept).
+    private static readonly NavMeshPath _reachPath = new();
+    private static readonly Vector3[] _reachCorners = new Vector3[2];
+
+    /// <summary>Same answer as CanGoToPoint, but allocates nothing. Use when the path itself is not needed.</summary>
+    public bool CanReachPoint(Vector3 point, bool mustHaveCompletePath = true, float navSampleRange = 0.5f)
+    {
+        var navData = Bot.Transform.NavData;
+        if (!navData.IsOnNavMesh)
+        {
+            return false;
+        }
+        if (NavMesh.SamplePosition(point, out NavMeshHit targetHit, navSampleRange, -1))
+        {
+            _reachPath.ClearCorners();
+            if (NavMesh.CalculatePath(navData.PathStart, targetHit.position, -1, _reachPath) && _reachPath.GetCornersNonAlloc(_reachCorners) > 1)
+            {
+                return !mustHaveCompletePath || _reachPath.status == NavMeshPathStatus.PathComplete;
+            }
+        }
+        return false;
+    }
+
     public bool CanGoToPoint(Vector3 point, out NavMeshPath path, bool mustHaveCompletePath = true, float navSampleRange = 0.5f)
     {
         var navData = Bot.Transform.NavData;
@@ -483,10 +506,10 @@ public class SAINMoverClass : BotComponentClassBase, IBotPathFinder
         if (navData.IsOnNavMesh)
         {
             PathData coverPathData = point.PathData;
-            if (coverPathData.TimeSinceLastUpdated > 0.5f)
+            // perf: gate was dead before (TimeLastUpdated never set here) -> path recalculated every call.
+            if (coverPathData.Path == null || coverPathData.TimeSinceLastUpdated > 0.5f)
             {
-                coverPathData.Path.ClearCorners();
-                NavMesh.CalculatePath(navData.PathStart, point.Position, -1, coverPathData.Path);
+                coverPathData.RecalcCornersOnly(navData.PathStart, point.Position);
             }
             if (coverPathData.Path.status == NavMeshPathStatus.PathComplete)
             {

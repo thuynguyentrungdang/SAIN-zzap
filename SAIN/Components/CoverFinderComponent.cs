@@ -190,6 +190,11 @@ public class CoverFinderComponent : BotComponentBase
                             _scan.Add(colliderData.CoverPoint);
                         }
                     }
+                    else if (colliderData.IsNegativeCached(Time.time, targetPosition, botPosition))
+                    {
+                        // perf: known "no cover here" - skip, and don't spend a frame (yield) on it
+                        continue;
+                    }
                     else if (
                         CoverAnalyzer.CheckCreateNewCoverPoint(
                             collider,
@@ -203,6 +208,13 @@ public class CoverFinderComponent : BotComponentBase
                     {
                         _scan.Add(newPoint);
                         colliderData.CoverPoint = newPoint;
+                        CoverData.ValidCollidersList[i] = colliderData;
+                    }
+                    else
+                    {
+                        colliderData.NoCoverUntil = Time.time + SainBotColliderData.NegativeCacheSeconds;
+                        colliderData.FailedTargetPos = targetPosition;
+                        colliderData.FailedBotPos = botPosition;
                         CoverData.ValidCollidersList[i] = colliderData;
                     }
                     if (_scan.Count >= max)

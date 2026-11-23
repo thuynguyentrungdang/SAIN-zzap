@@ -332,7 +332,7 @@ public class SquadCombatClass : BotComponentClassBase
         bool aggressive = Bot.Info.PersonalitySettings.Rush.CanRushEnemyReloadHeal;
         if (aggressive)
         {
-            if (!Bot.Mover.CanGoToPoint(known, out _, false))
+            if (!Bot.Mover.CanReachPoint(known, false))
             {
                 reason = "tradeNoPath";
                 return false;
@@ -398,7 +398,7 @@ public class SquadCombatClass : BotComponentClassBase
                     continue;
                 }
             }
-            if (!Bot.Mover.CanGoToPoint(point, out _, true))
+            if (!Bot.Mover.CanReachPoint(point, true))
             {
                 continue;
             }
@@ -441,6 +441,9 @@ public class SquadCombatClass : BotComponentClassBase
     private static readonly float[] RING_SCALES = { 1f, 0.7f, 0.45f };
     private static readonly float[] SIDESTEPS = { 3f, 6f, 9f, 12f };
 
+    private float _crossfireRetryAt;
+    private const float CrossfireRetryCooldown = 2f; // guess, tune after profiling
+
     private bool TryStartCrossfire(Enemy enemy, Vector3 known, out string reason)
     {
         reason = string.Empty;
@@ -463,6 +466,12 @@ public class SquadCombatClass : BotComponentClassBase
             reason = "noTeammateEngaging";
             return false;
         }
+        // perf: a failed position search (up to 64 candidates + 24 paths) is not repeated every decision tick.
+        if (Time.time < _crossfireRetryAt)
+        {
+            reason = "crossfireCooldown";
+            return false;
+        }
         Vector3 enemyPos = engaging.GoalEnemy.EnemyPosition;
         // zzap 2026-09-29: 17 of the crossfire attempts in one Factory raid found no spot (noLineOfSight) - the ring of points
         // 10-40m around the enemy lands behind walls indoors. Indoors: first hold the room's OTHER entrance (one mate fights
@@ -480,6 +489,7 @@ public class SquadCombatClass : BotComponentClassBase
         }
         if (!FindAnglePoint(enemy, enemyPos, engaging.Position, out Vector3 point, out string why, indoor, out float pose))
         {
+            _crossfireRetryAt = Time.time + CrossfireRetryCooldown;
             reason = $"noCrossfirePoint({why})";
             if (TacticDiagnostics.CountOn) TacticDiagnostics.Count($"squad.crossfire.noPoint.{(indoor ? "indoor" : "outdoor")}.{why}");
             return false;
@@ -761,7 +771,7 @@ public class SquadCombatClass : BotComponentClassBase
             // 2.5m through the doorway, toward where he was last known, then SAIN's own fight takes over when he shows.
             Vector3 inward = Flat(s.Doorway - s.HoldSpot);
             Vector3 raw = s.Doorway + (inward.sqrMagnitude > 0.01f ? inward.normalized : Flat(known.Value - s.Doorway).normalized) * 2.5f;
-            if (SampleNav(raw, out Vector3 inside) && Bot.Mover.CanGoToPoint(inside, out _, true))
+            if (SampleNav(raw, out Vector3 inside) && Bot.Mover.CanReachPoint(inside, true))
             {
                 s.Pushing = true;
                 s.Target = inside;
