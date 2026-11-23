@@ -164,10 +164,8 @@ public class SAINBotUnstuckClass : BotComponentClassBase
 
     private void StartCoroutine()
     {
-        if (_botUnstuckCoroutine == null)
-        {
-            _botUnstuckCoroutine = Bot.StartCoroutine(BotUnstuck());
-        }
+        // perf: BotUnstuck() body is commented out upstream (empty loop, one resume per bot per frame for nothing).
+        // The zzap Watchdog() above does the real work. Not started; the method is kept for the stop path.
     }
 
     private Coroutine _botUnstuckCoroutine;

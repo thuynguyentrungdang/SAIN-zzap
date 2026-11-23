@@ -100,7 +100,10 @@ public class RandomVisiblePointGeneratorJob : SainJobTemplate, IDisposable
     {
         for (int i = 0; i < Total; i++)
         {
-            RaycastJobs[i].Schedule();
+            // struct in a List: schedule the copy and store it back so the Handle is kept
+            RaycastJob job = RaycastJobs[i];
+            job.Schedule();
+            RaycastJobs[i] = job;
         }
     }
 

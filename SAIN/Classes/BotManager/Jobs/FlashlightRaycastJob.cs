@@ -218,7 +218,11 @@ public class FlashlightRaycastJob : SainJobTemplate, IDisposable
     {
         for (int i = 0; i < Total; i++)
         {
-            RaycastJobs[i].Schedule();
+            // RaycastJob is a struct: List indexer returns a copy, so schedule the copy and store it back,
+            // otherwise the Handle is lost (Complete/Dispose could not wait for the job).
+            RaycastJob job = RaycastJobs[i];
+            job.Schedule();
+            RaycastJobs[i] = job;
         }
     }
 

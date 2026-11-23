@@ -176,6 +176,12 @@ public class CombatWeaponClass : BotComponentClassBase
 
     public override void ManualUpdate()
     {
+        // perf: TickInterval (0.25 s) was declared but never enforced - TickClassGroup calls ManualUpdate every frame.
+        // Swap decisions are not reaction-critical (the reload/pistol utilities call PistolReady/TrySwapInsteadOfReload directly).
+        if (!ShallTick(Time.time))
+        {
+            return;
+        }
         // zzap (Remix 4.2 feedback): keep BSG's per-slot weapon table in step with looted guns (WeaponInfoSync)
         WeaponInfoSync.Tick(BotOwner);
         if (!Applies)

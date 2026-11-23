@@ -8,6 +8,22 @@ public struct SainBotColliderData(Collider collider)
     public CoverPoint CoverPoint = null;
     public float SqrMagnitude;
 
+    // perf: negative cache. A collider that gave no cover point is not re-analysed (path + raycasts) until the
+    // timer runs out or the enemy / bot has moved enough to change the answer.
+    public float NoCoverUntil;
+    public Vector3 FailedTargetPos;
+    public Vector3 FailedBotPos;
+
+    public const float NegativeCacheSeconds = 3f;
+    public const float NegativeCacheMoveSqr = 16f; // 4 m
+
+    public readonly bool IsNegativeCached(float time, Vector3 targetPos, Vector3 botPos)
+    {
+        return time < NoCoverUntil
+            && (targetPos - FailedTargetPos).sqrMagnitude < NegativeCacheMoveSqr
+            && (botPos - FailedBotPos).sqrMagnitude < NegativeCacheMoveSqr;
+    }
+
     public static bool operator ==(SainBotColliderData left, SainBotColliderData right)
     {
         return Equals(left.Collider, right.Collider);

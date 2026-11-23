@@ -15,6 +15,15 @@ public class PathData
 
     public float TimeLastUpdated { get; private set; }
 
+    /// <summary>Recalculates only the corner path (not PathLength) and stamps the update time so the age gate works.</summary>
+    public void RecalcCornersOnly(Vector3 origin, Vector3 destination)
+    {
+        Path ??= new NavMeshPath();
+        Path.ClearCorners();
+        NavMesh.CalculatePath(origin, destination, NavMesh.AllAreas, Path);
+        TimeLastUpdated = Time.time;
+    }
+
     public void CalcPath(Vector3 origin, Vector3 destination)
     {
         Path ??= new NavMeshPath();
