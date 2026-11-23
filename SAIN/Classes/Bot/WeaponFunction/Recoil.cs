@@ -51,19 +51,31 @@ public class Recoil(BotComponent sain) : BotBase(sain)
 
     public void CalcRecoilDecay()
     {
+        float now = Time.time;
         if (!_recoilFinished)
         {
-            float decayTime = Time.fixedDeltaTime * _recoilDecayCoef * SettleMultiplier();
-            _currentRecoilHorizAngle = Mathf.LerpAngle(0, _currentRecoilHorizAngle, 1f - decayTime);
-            _currentRecoilVertAngle = Mathf.LerpAngle(0, _currentRecoilVertAngle, 1f - decayTime);
-            if (_currentRecoilHorizAngle <= 0.001f && _currentRecoilVertAngle < 0.001f)
+            // COMET port (liquidwarp RecoilStep + SignedRecoil): the old step applied one fixed-step decay per CALL, so the
+            // decay speed followed the frame rate; and "<= 0.001" on signed angles ended recoil early for negative
+            // (left / down) angles. Now: same per-fixed-step factor, raised to elapsed/fixedDeltaTime, and |angle| checks.
+            // Real-time decay: the rate is defined per SECOND (reference step 0.02 s = EFT's physics step, 0.3 coef -> ~2.3 s
+            // half-life, matching the "~2 s half-life" design note below). No dependence on frame rate or Time.fixedDeltaTime.
+            const float ReferenceStep = 0.02f;
+            float elapsed = _lastDecayTime < 0f ? 0f : Mathf.Clamp(now - _lastDecayTime, 0f, 0.25f);
+            float retention = Mathf.Clamp01(1f - ReferenceStep * _recoilDecayCoef * SettleMultiplier());
+            float factor = elapsed <= 0f ? 1f : Mathf.Pow(retention, elapsed / ReferenceStep);
+            _currentRecoilHorizAngle *= factor;
+            _currentRecoilVertAngle *= factor;
+            if (Mathf.Abs(_currentRecoilHorizAngle) <= 0.001f && Mathf.Abs(_currentRecoilVertAngle) <= 0.001f)
             {
                 _recoilFinished = true;
                 _currentRecoilHorizAngle = 0f;
                 _currentRecoilVertAngle = 0f;
             }
         }
+        _lastDecayTime = now;
     }
+
+    private float _lastDecayTime = -1f;
 
     // zzap (2026-10-13, user: "DMR / sniper bots hit less at long range than bots with assault rifles"): a shot's recoil is an
     // aim offset (angle) that decays with a ~2s half-life, and it is scaled by the weapon's recoil times its "shootability"
